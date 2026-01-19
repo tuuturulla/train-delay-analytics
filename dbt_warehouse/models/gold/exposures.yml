@@ -1,0 +1,11 @@
+exposures:
+  - name: juna_jumis_dashboard
+    type: dashboard
+    description: >
+      Evidence-dashboard, joka näyttää Top 10 myöhästelevää asemaa ja asemien ruuhkatunnit
+      lokakuulta 2025.
+    depends_on:
+      - ref('bottleneck_stations')
+      - ref('rush_hours_stations')
+    owner:
+      name: "JunaJumis"

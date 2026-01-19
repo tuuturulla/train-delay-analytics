@@ -1,0 +1,1 @@
+select * from dev_gold.bottleneck_stations

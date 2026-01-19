@@ -1,0 +1,33 @@
+version: 2
+models:
+  - name: bottleneck_stations
+    description: "Top 10 asemaa, joille junat saapuvat eniten myöhässä - lokakuu 2025"
+    columns:
+      - name: station_short_code
+        description: "Aseman lyhytkoodi (esim. HKI)"
+      - name: total_arrivals
+        description: "Kaikki yhteenlasketut saapumiset asemalle, jotka ei ole peruttu/poistettu"
+      - name: late_events
+        description: "Kaikki yhteenlasketut myöhästymiset asemalle >= määrätty thr"
+      - name: late_rate
+        description: "late_events / total_arrivals = osuus saapumisista, jotka ylittävät myöhässä-kynnyksen"
+      - name: p90_minutes_late
+        description: "Myöhässä olevien 90. persentiili per asema"
+      - name: severity_score
+        description: "late_rate * p90_minutes_late (kuinka usein x kuinka pahasti)"
+
+  - name: rush_hours_stations
+    description: "Asemakohtaiset tuntitasoiset saapumiset ja myöhästymiset lokakuussa 2025.
+      Yksi rivi per (asema, tunti). Käytetään ruuhkatuntien ja myöhästymisasteen analysointiin."
+    columns:
+      - name: station_short_code
+        description: "Aseman lyhytkoodi (esim. HKI)"
+      - name: hour
+        description: "Tunti vuorokausesta (0-23) aikataulun mukaisesta saapumisajasta (scheduled_time)."
+      - name: arrivals 
+        description: "Saapumisten lukumäärä kyseisellä asemalla kyseisen tunnin aikana."
+      - name: late_events
+        description: "Myöhässä saapuneiden junien lukumäärä (minutes_late ≥ 5) kyseisellä asemalla kyseisen tunnin aikana."
+      - name: late_rate
+        description: "Myöhässä saapuneiden junien osuus kaikista saapumisista tunnin aikana
+          (late_events / arrivals). Arvo välillä 0–1. Jos arrivals = 0, arvo on 0."

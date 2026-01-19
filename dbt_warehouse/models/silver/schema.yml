@@ -1,0 +1,79 @@
+version: 2
+models:
+  - name: train_timetable
+    description: "Tapahtumariveihin purettu aikatauludata (juna × asema × tapahtumatyyppi × scheduled_time)"
+    columns:
+      - name: sk_train_timetable
+        description: "Surrogaattiavain riville: (sk_train, station_short_code, event_type, scheduled_time"
+      - name: train_number
+        description: "Junan numero"
+      - name: departure_date
+        description: "Junan ensimmäisen lähdön päivämäärä (YYYY-MM-DD)"
+      - name: train_type
+        description: "Junan tyyppi (esim. IC, S, P, lähijunilla kirjain)"
+      - name: train_category
+        description: "Junan kategoria (esim. Long-distance, Commuter)"
+      - name: cancelled
+        description: "Onko koko juna peruttu"       
+      - name: deleted
+        description: "Onko juna poistettu (peruttu ≥10 pv ennen lähtöä)"     
+      - name: station_short_code
+        description: "Aseman lyhytkoodi (esim. HKI)"
+      - name: station_uic_code
+        description: "Aseman UIC-koodi (numero)"
+      - name: event_type
+        description: "Tapahtuman tyyppi (ARRIVAL tai DEPARTURE)"
+      - name: train_stopping
+        description: "Pysähtyykö juna asemalla (true/false)"
+      - name: commercial_stop
+        description: "Onko pysähdys kaupallinen (matkustajat voivat nousta/poistua)"
+      - name: stop_cancelled
+        description: "Onko kyseinen pysähdys peruttu"
+      - name: scheduled_time
+        description: "Tapahtuman aikataulun mukainen kellonaika"
+      - name: actual_time
+        description: "Toteutunut kellonaika; voi olla NULL jos tapahtuma ei ole toteutunut."
+      - name: difference_in_minutes
+        description: "Toteutuneen ja aikataulun välinen ero minuutteina (myöhässä=positiivinen; voi olla NULL)."
+      - name: sk_train
+        description: "Junakohtainen surrogaattiavain lähdemallista"
+
+  - name: f_arrivals
+    description: "Faktataulu: Juna on saapunut asemalle"
+    columns:
+      - name: sk_arrival
+        description: "Suora kopio sk_train_timetable avaimesta"
+      - name: station_short_code
+        description: "Aseman lyhytkoodi (esim. HKI)"
+      - name: station_uic_code
+        description: "Aseman UIC-koodi (numero)"
+      - name: scheduled_time
+        description: "Tapahtuman aikataulun mukainen kellonaika"
+      - name: service_date
+        description: "Tapahtumapäivä"
+
+  - name: f_trainislate
+    description: "Faktataulu: Juna on saapunut myöhässä asemalle"
+    columns:
+      - name: sk_islate
+        description: "Surrogaattiavain riville: train_number , departure_date, station_short_code, scheduled_time)"
+      - name: sk_arrival
+        description: "Juna on saapunut asemalle"
+      - name: train_number
+        description: "Junan numero"
+      - name: departure_date
+        description: "Junan ensimmäisen lähdön päivämäärä (YYYY-MM-DD)"
+      - name: station_short_code
+        description: "Aseman lyhytkoodi (esim. HKI)"
+      - name: minutes_late
+        description: "Kuinka monta minuuttia juna on myöhässä, johdettu suoraan difference_in_minutes > 0"
+      - name: is_late
+        description: "Sarake, joka saa arvon TRUE. Ei välttämättä tarpeellinen pitää, koska suodatettu jo vain myöhässä olleet junat tähän tauluun."
+
+  - name: d_station
+    description: "Dimensiotaulu: asematietojen haku"
+    columns:
+      - name: station_short_code
+        description: "Aseman lyhytkoodi (esim. HKI)"
+      - name: station_uic_code
+        description: "Aseman UIC-koodi (numero)"

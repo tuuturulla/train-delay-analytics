@@ -1,0 +1,16 @@
+# Pythonin välimuistit
+__pycache__/ 
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Raw data lake (paitsi csvtest)
+data/lake/staging/**/*/
+!data/lake/staging/csvtest
+!data/lake/staging/csvtest/*.csv
+
+# Warehouse
+*.duckdb
+
+# dbt:warehouse
+dbt.log 

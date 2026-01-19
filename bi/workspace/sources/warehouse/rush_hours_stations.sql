@@ -1,0 +1,1 @@
+select * from dev_gold.rush_hours_stations

@@ -1,0 +1,37 @@
+
+version: 2
+models:
+  - name: junajumis_api
+    description: |
+       Fintrafficin /trains/<date> -rajapinnan raakadata (Bronze). Yksi rivi per juna-päivä.
+    columns:
+      - name: sk_train
+        description: "Surrogaattiavain"
+      - name: trainNumber
+        description: "Junan numero"
+      - name: departureDate
+        description: "Junan ensimmäisen lähdön päivämäärä (YYYY-MM-DD)"
+      - name: operatorUICCode
+        description: "Operaattorin UIC-koodi (esim. VR = 10)"
+      - name: operatorShortCode
+        description: "Operaattorin lyhenne (esim. 'vr')"
+      - name: trainType
+        description: "Junan tyyppi (esim. IC, S, P, lähijunilla kirjain)"
+      - name: trainCategory
+        description: "Junan kategoria (esim. Long-distance, Commuter)"
+      - name: commuterLineID
+        description: "Lähijunan linjatunnus (esim. Z), muuten tyhjä"
+      - name: runningCurrently
+        description: "Onko junalla vielä käynnissä olevia tapahtumia"
+      - name: cancelled
+        description: "Onko koko juna peruttu"       
+      - name: deleted
+        description: "Onko juna poistettu (peruttu ≥10 pv ennen lähtöä)"     
+      - name: version
+        description: "Versionumero"     
+      - name: timetableType
+        description: "Aikataulun tyyppi: REGULAR (toistuva) tai ADHOC (kertaluonteinen)"     
+      - name: timetableAcceptanceDate
+        description: "Hetki, jolloin FTA hyväksyi junan liikenteeseen (timestamp)"     
+      - name: timeTableRows
+        description: "Asemakohtaiset tapahtumat JSON[]-muodossa (ARR/DEP, ajat, viiveet, ym.)"     
