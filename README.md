@@ -1,107 +1,110 @@
 # JunaJumis
-*"Asemat, joissa aikataulu käy kahvilla"*  
+*"Stations where the timetable goes for a coffee"* ☕
 
-Projektin tavoitteena on kartoittaa, **mille asemille junat keskimäärin saapuvat eniten myöhässä** ja **mihin vuorokaudenaikoihin myöhästymiset kasautuvat** lokakuussa 2025 Fintrafficin junadataa hyödyntäen.  
+Goal: map **which stations trains arrive late to the most (on average)** and **when during the day delays pile up**, using Fintraffic train data (October 2025).
 
-## 0. Onko lippu ja lupa? – Vaatimukset
+## 0. Ticket & permission check — Requirements
 
-Tarvitset:
+You'll need:
 
 -  Python **3.11**
-- [uv](https://docs.astral.sh/uv/) (riippuvuuksien hallinta) 
+- [uv](https://docs.astral.sh/uv/) (dependency management) 
 - Git  
-- Paikallinen DuckDB (CLI)  
-- Docker + Docker Compose (Evidence-deville)
+- DuckDB (CLI)  
+- Docker + Docker Compose (for Evidence dev)
 
 ---
 
-## 1. Ensiasennus uudella koneella – Ratapihan pystytys 🚧
+## 1. First-time setup — building the rail yard 🚧
 
-Nämä tehdään **kerran / kone** (tai kun riippuvuudet muuttuvat).
+Do this **once per machine** (or when dependencies change).
 
-### 1.1 Kloonaus & projektiin sisään
+### 1.1 Clone & enter the project
 
 ```bash
-git clone git@gitlab.dclabra.fi:data-alustat-2025/sarapyky.git
-cd sarapyky
+git clone git@github.com:neurodreams/train-delay-analytics.git
+cd train-delay-analytics
 ```
 
-### 1.2 Python-riippuvuudet kuntoon (uv)
+### 1.2 Install Python deps (uv)
 
 ```bash
 uv sync
 ```
-Jos `uv` puuttuu: `pip install uv` tai asenna virallisten ohjeiden mukaan.
+if `uv` is missing: `pip install uv` (or install via official docs)
 
-Tämä asentaa kaikki pyproject.toml:issa määritellyt Python-depsit (mukaan lukien dbt & dbt-duckdb).
+This installs everything from pyproject.toml (including dbt + dbt-duckdb)
 
-### 1.3 dbt-projekti kuntoon
+### 1.3 dbt setup
 ```bash
 uv run dbt deps
 uv run dbt debug
 ```
-Saat ``All checks passed!`` kun dbt löytää profiilin ja DuckDB-varasto (data/warehouse/warehouse.duckdb) on ok. Tarkista ``profiles.yml`` ja polut, koska juna ei lähde asemalta ilman rataverkkoa. 
+You should see ``All checks passed!`` when dbt finds the profile and the DuckDB warehouse (data/warehouse/warehouse.duckdb) is OK. Check ``profiles.yml`` + paths if the train refuses to leave the station. 
 
-### 1.4 Evidence-ensikäynnistys – Volyymit & kansiot
-Alkutoimet, jotta Evidence-volume ja bi/workspace syntyvät oikein:
+
+### 1.4 Evidence first boot — volumes & folders
+
+Initial setup so Evidence volumes + bi/workspace get created correctly: 
 ```bash
 docker compose -f docker-compose.init.yml up --build
 docker compose -f docker-compose.init.yml down
 ```
 
-## 2. Päivittäinen ajelu – Data yhdellä komennolla 🚂
-Kun yllä olevat ensiasennukset on suoritettu, datan päivitys onnistuu näppärästi yhdellä komennolla.
+## 2. Daily driving — data with one command 🚂
+
+After setup, updating data is basically one button. 
 
 ```bash
-# Esimerkki 1: Haetaan datat 1.10.2025 → eiliseen asti
+# Example 1: Fetch from a given date → until yesterday
 bash scripts/update_data.sh YYYY-MM-DD
 
-# Esimerkki 2: Haetaan tarkka aikaväli 1.10.–31.10.2025
+# Example 2: Fetch a specific range (e.g. Oct 1–31, 2025)
 bash scripts/update_data.sh YYYY-MM-DD YYYY-MM-DD
 ```
 
-Skripti suorittaa peräkkäin:
-1. Hakee junadatan Fintrafficin API:sta 
-2. Ajaa dbt-mallit DuckDB:hen
-3. Kopioi DuckDB-tietokannan Evidenceä varten 
+What the script does, in order:
+1. Fetches train data from the Fintraffic API 
+2. Runs dbt models and builds DuckDB tables
+3. Copies the DuckDB database for Evidence
 
-> Lyhyesti: update_data.sh = “Päivitä data, aja mallit ja tarjoile Evidenceen”.
-Kuljettajalle yksi nappi, ratapihalle monta vaihdetta 🚦
+> In short: update_data.sh = “Update data, run models, and serve it to Evidence”.
+One button for the driver, many switches in the rail yard 🚦
 
-## 3. Jos haluat ajaa vaiheet käsin – Pitkä matka yöjunalla 🌙
-Jos et halua nopeinta junaa minkä update_data.sh tarjoaa vaan koko setin niin alla on pidempi versio. 
+## 3. Manual mode — the night train route 🌙
+If you don't want the fastest route (update_data.sh), here's the longer version.
 
-### 3.1 Raakadatan haku (Bronze / lake) 
-Ingestori: src/ingestor/junajumis.py
+### 3.1 Raw data ingest (Bronze / lake)
+Ingestor: src/ingestor/junajumis.py
 
 ```bash
-# Step 1: Kuiva ajo halutusta päivästä eiliseen asti (ei kirjoita levylle)
+# Dry run: from start date → until yesterday (no files written)
 uv run python src/ingestor/junajumis.py -s YYYY-MM-DD --dry-run
 
-# E.g 1: Hae halutusta päivästä (eiliseen asti)
+# Example 1: fetch from a start date (until yesterday)
 uv run python src/ingestor/junajumis.py -s YYYY-MM-DD
 
-# E.g 2: Hae tarkka aikaväli 
+# Example 2: fetch a specific range
 uv run python src/ingestor/junajumis.py -s YYYY-MM-DD --end_date YYYY-MM-DD
 ```
-**Tallennuspolku**: data/lake/staging/junajumis/date=YYYY-MM-DD/trains_raw.json
+**Output path**: data/lake/staging/junajumis/date=YYYY-MM-DD/trains_raw.json
 
-Jokaiselle päivälle löytyy oma hakemistonsa (date=...), jossa on Digitrafficin raakavastaus.
+Each day gets its own folder (date=...) with the raw Digitraffic/Fintraffic response.
 
-### 3.2 dbt-ajot (Bronze → Silver → Gold) 
-Aja kaikki mallit:
+### 3.2. dbt runs (Bronze → Silver → Gold)
+Run everything:
 ```bash
 uv run dbt run
 ```
-Tai kerros kerrallaan:
+Or layer by layer:
 ```bash
-# Bronze-kerros: raakadatasta strukturoiduksi
+# Bronze: raw → structured
 uv run dbt run --select bronze
 
-# Silver-kerros: faktoja ja dimensioita
+# Silver: facts + dimensions
 uv run dbt run --select silver
 
-# Gold-kerros: liiketoimintavalmiit mittarit & näkymät
+# Gold: business-ready metrics/views
 uv run dbt run --select gold
 ```
 
@@ -109,7 +112,7 @@ uv run dbt run --select gold
 ```bash
 duckdb -ui data/warehouse/warehouse.duckdb
 ```
-Pystyt tarkastelemaan dbt:n generoimia tauluja ja voit suorittaa SQL-kyselyitä käsin. 
+You can inspect dbt-generated tables and run SQL manually.
 
 ### dbt Docs 
 ```bash
@@ -119,47 +122,48 @@ uv run dbt docs generate
 # Palvele dokumentaatiota lokaalisti
 uv run dbt docs serve
 ```
-Avaa selaimessa dbt:n UI:n (skeemat, kuvaukset jne). Pystyt tarkistelemaan miten taulut liittyvät toisiinsa.
+Open the dbt docs UI in your browser to see schemas, descriptions, and how tables connect.
 
-## 4. Mallinnuskerrokset – Veturi, vaunut & asemat 🛠️
-**"Vetää kuin junan vessa"**: Bronze → Silver → Gold 
-- Bronze: raakajunadata JSON -> taulukoksi
-- Silver (fakta- ja dimensiotasot):
+## 4. Modeling layers — locomotive, wagons & stations 🛠️
+**"Pulls like a train toilet"**: Bronze → Silver → Gold 
+- Bronze: raw train JSON → tables
+- Silver (facts + dims):
     - **train_timetable** (SK: sk_train_timetable)
-    - **f_arrivals** (validit saapumiset, avain = sk_arrival = sk_train_timetable)
-    - **f_trainislate** (myöhässä olevat saapumiset, minutes_late > 0, avain: sk_islate)
-    - **d_station** (asema-dimensio: station_short_code, station_uic_code)
+    - **f_arrivals** (valid arrivals, key = sk_arrival = sk_train_timetable)
+    - **f_trainislate** (late arrivals, minutes_late > 0, key: sk_islate)
+    - **d_station** (station dimension: station_short_code, station_uic_code)
 - Gold:
-    - **bottleneck_stations** (Mille asemille junat keskimäärin saapuvat eniten myöhässä: late_rate, p90_minutes_late, severity_score) 
-    - **rush_hours_stations** (Asemakohtaiset tuntitasoiset saapumiset ja myöhästymiset lokakuussa 2025)
-    - Nämä taulut ovat Evidence-dashboardin tietolähteitä.
+    - **bottleneck_stations** (where trains arrive late the most: late_rate, p90_minutes_late, severity_score) 
+    - **rush_hours_stations** (hour-level arrivals + delays by station for Oct 2025)
 
-## 5. Evidence – Kuljettajan näkymä ohjaamossa 👩‍✈️
-Evidence lukee DuckDB-tietokannan ja visualisoi gold-tason taulut. 
+These Gold tables feed the Evidence dashboard.
 
-### 5.1 Build & käynnistys
-Ensimmäisellä kerralla / Dockerfileä muutettaessa:
+## 5. Evidence — the driver’s cockpit view 👩‍✈️
+Evidence reads the DuckDB warehouse and visualizes Gold-level tables.
+
+### 5.1 Build & run
+First time (or when the Dockerfile changes):
 ```bash
 docker compose build
 ```
-Käynnistä dev-palvelu + live-reload:
+Start dev server + live reload:
 ```bash
 docker compose up --watch
 ```
-Evidence palvelee selaimessa osoitteessa ```http://localhost:3000```
+Evidence runs at: ```http://localhost:3000```
 
-### 6. Yhteenveto – Miten juna pidetään kartalla 🎯
-Uusi kone / uusi kehittäjä?
-➡️ Katso kohta 1.
+### 6. TL;DR — keeping the train on track 🎯
+New machine / new dev?
+➡️ See section 1
 
-Haluat vain tuoreen datan & päivitetyn raportin?
-➡️ Aja:
+Just want fresh data + updated dashboard?
+➡️ Run:
 ```bash
 bash scripts/update_data.sh YYYY-MM-DD YYYY-MM-DD
-docker compose up --watch   # jos ei jo päällä
+docker compose up --watch  # if not already running
 ```
 
-Haluat näprätä yksittäistä kerrosta tai debugata?
-➡️ Käytä kohtia 3–5.
+Want to debug specific layers?
+➡️ Use sections 3–5
 
-Ja jos juna on myöhässä – ainakin data on ajoissa 😉
+And if the train is late — at least the data is on time 😉
