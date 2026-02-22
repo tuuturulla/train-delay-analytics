@@ -56,7 +56,7 @@ docker compose -f docker-compose.init.yml down
 After setup, updating data is basically one button. 
 
 ```bash
-# Example 1: Fetch from a given date → until yesterday
+# Example 1: Fetch from a given date
 bash scripts/update_data.sh YYYY-MM-DD
 
 # Example 2: Fetch a specific range (e.g. Oct 1–31, 2025)
@@ -116,10 +116,10 @@ You can inspect dbt-generated tables and run SQL manually.
 
 ### dbt Docs 
 ```bash
-# Luo dokumentaatio
+# Create docs
 uv run dbt docs generate
 
-# Palvele dokumentaatiota lokaalisti
+# Serve docs
 uv run dbt docs serve
 ```
 Open the dbt docs UI in your browser to see schemas, descriptions, and how tables connect.

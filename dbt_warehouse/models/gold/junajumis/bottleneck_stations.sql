@@ -7,7 +7,7 @@ WITH params AS (
 arrivals AS (  
   SELECT station_short_code, COUNT(*) AS total_arrivals
   FROM {{ ref('f_arrivals') }}
-  GROUP BY 1
+  GROUP BY 1 -- station_short_code
 ),
 
 late AS (
@@ -19,8 +19,8 @@ late AS (
 late_agg AS (
   SELECT
     station_short_code,
-    COUNT(*)                         AS late_events,
-    quantile_cont(minutes_late,0.9)  AS p90_minutes_late
+    COUNT(*)                         AS late_events, 
+    quantile_cont(minutes_late,0.9)  AS p90_minutes_late 
   FROM late
   GROUP BY station_short_code
 ), 
@@ -31,9 +31,9 @@ scored AS (
     s.station_uic_code, 
     a.total_arrivals,
     COALESCE(l.late_events, 0)        AS late_events,
-    CASE 
-      WHEN a.total_arrivals > 0 THEN COALESCE(l.late_events, 0)::DOUBLE / a.total_arrivals
-      ELSE 0
+    CASE -- lasketaan kuinka suuri osuus junista oli myöhässä, mutta vain jos asemalle oli saapumisia
+      WHEN a.total_arrivals > 0 THEN COALESCE(l.late_events, 0)::DOUBLE / a.total_arrivals 
+      ELSE 0 
     END                                AS late_rate,
     COALESCE(l.p90_minutes_late, 0)    AS p90_minutes_late,
     -- päämittari: "kuinka usein" * "kuinka pahasti" (p90)

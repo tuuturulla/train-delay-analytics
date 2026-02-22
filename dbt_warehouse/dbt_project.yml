@@ -32,11 +32,7 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   dbt_warehouse:
     # Config indicated by + and applies to all files under models/example/
-    example:
-      +materialized: view
     bronze:
-      csvtest:
-        +materialized: table
       junajumis:
         +materializied: table
       +schema: bronze
