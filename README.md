@@ -5,6 +5,8 @@ Goal: map **which stations trains arrive late to the most (on average)** and **w
 
 > Coursework for the Data Platforms course in ICT engineering studies. The course provided the base project structure; the research question, dbt models, metrics and dashboard are my own.
 
+> **Update (November 2026):** Fixed a time zone bug in the rush hour view. The API returns times in UTC, and hours were originally extracted directly from them, so the view was 2–3 hours behind Finnish time. The `rush_hours_stations` model now converts times to Europe/Helsinki (including the end of summer time) before extracting the hour.
+
 ## 0. Ticket & permission check — Requirements
 
 You'll need:
