@@ -3,6 +3,8 @@
 
 Goal: map **which stations trains arrive late to the most (on average)** and **when during the day delays pile up**, using Fintraffic train data (October 2025).
 
+> Coursework for the Data Platforms course in ICT engineering studies. The course provided the base project structure; the research question, dbt models, metrics and dashboard are my own.
+
 ## 0. Ticket & permission check — Requirements
 
 You'll need:
@@ -22,7 +24,7 @@ Do this **once per machine** (or when dependencies change).
 ### 1.1 Clone & enter the project
 
 ```bash
-git clone git@github.com:neurodreams/train-delay-analytics.git
+git clone git@github.com:tuuturulla/train-delay-analytics.git
 cd train-delay-analytics
 ```
 
